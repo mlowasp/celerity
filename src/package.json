@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "electron": "^27.1.3",
+    "electron-store": "^8.1.0",
+    "electron-twig": "^1.1.1",
+    "jquery": "^3.7.1",
+    "mysql": "^2.18.1",
+    "uuid": "^9.0.1"
+  },
+  "name": "celerity",
+  "version": "1.0.0",
+  "description": "Celerity is a real-time SQL query profiler for MySQL/MariaDB",
+  "main": "index.js",
+  "repository": "https://github.com/mlowasp/celerity",
+  "author": "Maxime Labelle",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ."
+  }
+}
