@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+  {% block body %}
+
+    <div class="container top-margin full-height">     
+      <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>        
+      </div>        
+      <br/>
+      <div class="d-flex justify-content-center">
+        <p class="mt5-">{{ loading_msg }}</p>
+      </div>
+    </div>
+
+  {% endblock %}
