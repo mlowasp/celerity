@@ -61,17 +61,23 @@ var getFirstRow = function(results) {
 
 var handleMainLoop = async function() {
   if (states.database_connected) {
+
+    // handle deconnections errors
+
     if (states.database_profiling) {
       // var sql = "show variables where Variable_name = 'log_output'"; // save this and put it back 
       //https://mariadb.com/kb/en/mysqlslow_log-table/
       // var results = await dbQuery(states.database_connection, sql);
       
+      // handle ; error permission ER_TABLEACCESS_DENIED_ERROR
+
       // console.log(getFirstRow(results));
 
       var sql = "SELECT * FROM mysql.slow_log";
       if (states.last_start_time) {
         sql += " WHERE start_time > '"+states.last_start_time.toString()+"'";
       }
+
       var results = await dbQuery(states.database_connection, sql);
       
       var payload = [];
@@ -126,10 +132,12 @@ var handleTx = async function(event, data) {
             WHERE ENGINE='InnoDB'
         ) AA
     ) A;`;
+
     var results = await dbQuery(states.database_connection, sql);
+    
     returnData.payload = {
       'results': results,
-      'sql': data.sql,
+      'sql': sql,
     };
 
   }

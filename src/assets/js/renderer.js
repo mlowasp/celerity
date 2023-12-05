@@ -7,6 +7,33 @@ var tx = async (payload) => {
 
 window.electronAPI.handleRx((event, data) => {
 
+    if (data.action == "innodb_buffer_pool_optimization") {
+        const myModal = new bootstrap.Modal(document.getElementById('dataModal'));
+        var sql = data.payload.sql;
+        var format = window.sqlFormatter.format;
+
+        var HTML = `<pre><code>`+format(sql)+`</code></pre><hr/>
+        <div class="query_explain_div">
+        <table class="table table-stripped">
+            <thead>
+                <th>#</th>
+                <th>Recommended_InnoDB_Buffer_Pool_Size</th>
+            </thead>
+        <tbody>`;
+        for ( var index in data.payload.results) {
+            HTML += `<tr>
+                <td>`+index+`</td>
+                <td>`+data.payload.results[index].Recommended_InnoDB_Buffer_Pool_Size+`</td>                
+            </tr>`;
+        }
+            HTML += `</tbody>
+        </table></div>
+        `;
+        $('#dataModalBody').html(HTML);
+        
+        myModal.show();
+    }
+
     if (data.action == "explain_query") {
         const myModal = new bootstrap.Modal(document.getElementById('explainModal'));
         
@@ -216,6 +243,15 @@ if (databases_manage_tbody) {
     tx({
         'action': 'get_databases'
     });   
+}
+
+const databases_innodb_buffer_pool_size_optimize_btn = document.getElementById('databases_innodb_buffer_pool_size_optimize_btn');
+if (databases_innodb_buffer_pool_size_optimize_btn) {
+    databases_innodb_buffer_pool_size_optimize_btn.addEventListener('click', () => {
+        tx({
+            'action': 'innodb_buffer_pool_optimization',
+        });  
+    });
 }
 
 const menu_databases_manage = document.getElementById('menu_databases_manage');

@@ -8,10 +8,11 @@
                 <div class="card-header">Connected to database...</div>
                 <div class="card-body">
                   
-                  <button type="button" class="btn btn-primary" id="databases_start_profiling_btn">Start profiling...</button>
-                  <button type="button" class="btn btn-warning" id="databases_stop_profiling_btn" style="display:none;">Stop profiling...</button>
+                  <button type="button" class="btn btn-outline-primary" id="databases_start_profiling_btn">Start profiling...</button>
+                  <button type="button" class="btn btn-outline-warning" id="databases_stop_profiling_btn" style="display:none;">Stop profiling...</button>
 
-                  <button type="button" class="btn btn-info" id="databases_clear_profiling_btn">Clear table...</button>
+                  <button type="button" class="btn btn-outline-info" id="databases_clear_profiling_btn">Clear table...</button>
+                  <button type="button" class="btn btn-outline-light" id="databases_innodb_buffer_pool_size_optimize_btn">Optimize innodb_buffer_pool_size...</button>
 
                   <hr/>
 
@@ -43,6 +44,24 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body" id="explainModalBody">
+            
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade modal-xl" id="dataModal" tabindex="-1" aria-labelledby="dataModal" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Data results</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="dataModalBody">
             
           </div>
           <div class="modal-footer">
