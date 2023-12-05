@@ -10,12 +10,12 @@ Celerity does not act as a proxy between your application and your database serv
 
 - slow_query_log profiling
 - query explain modal
-- innodb_buffer_pool_size optimization
+- optimal innodb_buffer_pool_size recommendation
 - missing index detection
 
 ## Releases
 
-No release yet. Working on it.
+Current pre-release is [v1.0.0](https://github.com/mlowasp/celerity/releases/tag/v1.0.0)
 
 ## Preview
 
@@ -30,3 +30,7 @@ No release yet. Working on it.
 ![Celerity](https://i.imgur.com/Q9l38og.png)
 
 ![Celerity](https://i.imgur.com/T6G5c2s.png)
+
+## Author
+
+Celerity was written by Maxime Labelle, you can reach me [here](mailto:maxime.labelle@owasp.org)
