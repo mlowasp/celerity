@@ -10,10 +10,10 @@
                   
                   <button type="button" class="btn btn-primary" id="databases_start_profiling_btn">Start profiling...</button>
                   <button type="button" class="btn btn-warning" id="databases_stop_profiling_btn" style="display:none;">Stop profiling...</button>
-                  
+
                   <button type="button" class="btn btn-info" id="databases_clear_profiling_btn">Clear table...</button>
 
-                  <br/>
+                  <hr/>
 
                   <table id="datatable" class="table table-striped">
                     <thead>
@@ -22,6 +22,7 @@
                       <th>db</th>
                       <th>query_time</th>
                       <th>sql_text</th>
+                      <th></th>
                     </thead>
                     <tbody id="database_profiling_tbody">
                     </tbody>
@@ -32,4 +33,23 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal -->
+    <div class="modal fade modal-xl" id="explainModal" tabindex="-1" aria-labelledby="explainModal" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">EXPLAIN</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="explainModalBody">
+            
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   {% endblock %}

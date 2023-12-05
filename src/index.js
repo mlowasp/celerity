@@ -114,6 +114,15 @@ var handleTx = async function(event, data) {
     'action': data.action,
   };
   
+  if (data.action == 'explain_query') {
+    var sql = "EXPLAIN "+data.sql;
+    var results = await dbQuery(states.database_connection, sql);
+    returnData.payload = {
+      'results': results,
+      'sql': data.sql,
+    };
+  }
+
   if (data.action == 'get_databases') {
     returnData.payload = config['databases'];    
   }
@@ -221,7 +230,8 @@ function createWindow () {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-    }
+    },
+    icon: __dirname + '/assets/images/celerity.png',
   });
 
   // ipcMain.on('tx', (event, payload) => {

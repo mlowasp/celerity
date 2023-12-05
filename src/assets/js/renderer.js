@@ -7,18 +7,68 @@ var tx = async (payload) => {
 
 window.electronAPI.handleRx((event, data) => {
 
+    if (data.action == "explain_query") {
+        const myModal = new bootstrap.Modal(document.getElementById('explainModal'));
+        
+        var sql = data.payload.sql;
+        var format = window.sqlFormatter.format;
+
+        var HTML = `<pre><code>`+format(sql)+`</code></pre><hr/>
+        <div class="query_explain_div">
+        <table class="table table-stripped">
+            <thead>
+                <th>id</th>
+                <th>select_type</th>
+                <th>table</th>
+                <th>type</th>
+                <th>possible_keys</th>
+                <th>key</th>
+                <th>key_len</th>
+                <th>ref</th>
+                <th>rows</th>
+                <th>Extra</th>                
+            </thead>
+            <tbody>`;
+        for ( var index in data.payload.results) {
+            HTML += `<tr>
+                <td>`+data.payload.results[index].id+`</td>
+                <td>`+data.payload.results[index].select_type+`</td>
+                <td>`+data.payload.results[index].table+`</td>
+                <td>`+data.payload.results[index].type+`</td>
+                <td>`+data.payload.results[index].possible_keys+`</td>
+                <td>`+data.payload.results[index].key+`</td>
+                <td>`+data.payload.results[index].key_len+`</td>
+                <td>`+data.payload.results[index].ref+`</td>
+                <td>`+data.payload.results[index].rows+`</td>
+                <td>`+data.payload.results[index].Extra+`</td>
+            </tr>`;
+        }
+            HTML += `</tbody>
+        </table></div>
+        `;
+        $('#explainModalBody').html(HTML);
+        
+        myModal.show();
+    }
+
     if (data.action == "update_profiling_tbody") {
         for ( var index in data.payload ) {
-            
-            var row = [
-                data.payload[index].start_time,
-                data.payload[index].user_host,
-                data.payload[index].db,
-                data.payload[index].query_time,
-                data.payload[index].sql_text.slice(0, 50) + "[...]",
-            ];    
-            
-            datatable.row.add(row);
+
+            var HTML = `<tr>
+                <td>`+data.payload[index].start_time+`</td>
+                <td>`+data.payload[index].user_host+`</td>
+                <td>`+data.payload[index].db+`</td>
+                <td>`+data.payload[index].query_time+`</td>
+                <td>`+data.payload[index].sql_text.slice(0, 50) + "[...]"+`</td>
+                <td>
+                `;
+                if (data.payload[index].sql_text.startsWith("SELECT ")) {
+                    HTML += `<button type="button" id="explainModal_btn" class="btn btn-sm btn-secondary" data-sql="`+btoa(data.payload[index].sql_text)+`">Explain</button>`;
+                }
+                HTML += `</td>
+            </tr>`;
+
+            datatable.row.add($(HTML));
 
         }
 
@@ -180,4 +230,12 @@ if (menu_databases_manage) {
 
 $(function() {
     datatable = $('#datatable').DataTable();    
+    $(document).on('click', '#explainModal_btn', function() {
+        var dataSql = $(this).attr('data-sql');
+        var sql = atob(dataSql);
+        tx({
+            'action': 'explain_query',
+            'sql': sql
+        });  
+    });
 });
