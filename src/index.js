@@ -77,9 +77,7 @@ var handleMainLoop = async function() {
       var payload = [];
       for ( var index in results ) {
         if (
-          results[index].sql_text.startsWith("SELECT * FROM mysql.slow_log")          
-          ||  
-          results[index].sql_text.startsWith("TRUNCATE mysql.slow_log")
+          results[index].db != states.database_connection.config.database
           ||
           results[index].sql_text.startsWith("SET GLOBAL")
           ||
@@ -94,8 +92,8 @@ var handleMainLoop = async function() {
       }
 
       var returnData = {
-        'status':'ok',
-        'payload':payload,
+        'status': 'ok',
+        'payload': payload,
         'action': 'update_profiling_tbody',
       };
 
@@ -114,6 +112,28 @@ var handleTx = async function(event, data) {
     'action': data.action,
   };
   
+  if (data.action == 'innodb_buffer_pool_optimization') {
+
+    var sql = `SELECT CONCAT(CEILING(RIBPS/POWER(1024,pw)),SUBSTR(' KMGT',pw+1,1))
+    Recommended_InnoDB_Buffer_Pool_Size FROM
+    (
+        SELECT RIBPS,FLOOR(LOG(RIBPS)/LOG(1024)) pw
+        FROM
+        (
+            SELECT SUM(data_length+index_length)*1.1*growth RIBPS
+            FROM information_schema.tables AAA,
+            (SELECT 1.25 growth) BBB
+            WHERE ENGINE='InnoDB'
+        ) AA
+    ) A;`;
+    var results = await dbQuery(states.database_connection, sql);
+    returnData.payload = {
+      'results': results,
+      'sql': data.sql,
+    };
+
+  }
+
   if (data.action == 'explain_query') {
     var sql = "EXPLAIN "+data.sql;
     var results = await dbQuery(states.database_connection, sql);
@@ -180,7 +200,7 @@ var handleTx = async function(event, data) {
        
         console.log('connected as id ' + connection.threadId);
         states.database_connected = true;
-        states.database_connection= connection;
+        states.database_connection = connection;
         
         win.loadFile('views/databases_connected.html.twig');
 
