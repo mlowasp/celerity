@@ -1,6 +1,6 @@
 # celerity
 
-Celerity is a real-time SQL query profiler for MySQL/MariaDB. This software is Free and Open-source software (FOSS) and released under the MIT license.
+Celerity is a real-time SQL query profiler for MySQL/MariaDB. This software is free and open-source software (FOSS) and released under the MIT license.
 
 ## About 
 
