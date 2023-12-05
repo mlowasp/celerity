@@ -1,5 +1,9 @@
-var mysql = require('mysql');
+var isWin = process.platform === "win32";
+if (isWin) {
+  if (require('electron-squirrel-startup')) app.quit();
+}
 
+var mysql = require('mysql');
 const Store = require('electron-store');
 const { app, BrowserWindow, safeStorage, ipcMain } = require('electron')
 const twig = require('electron-twig')
@@ -134,7 +138,7 @@ var handleTx = async function(event, data) {
     ) A;`;
 
     var results = await dbQuery(states.database_connection, sql);
-    
+
     returnData.payload = {
       'results': results,
       'sql': sql,
