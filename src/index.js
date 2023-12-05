@@ -1,11 +1,12 @@
+const { app, BrowserWindow, safeStorage, ipcMain } = require('electron')
 var isWin = process.platform === "win32";
 if (isWin) {
   if (require('electron-squirrel-startup')) app.quit();
 }
 
 var mysql = require('mysql');
+
 const Store = require('electron-store');
-const { app, BrowserWindow, safeStorage, ipcMain } = require('electron')
 const twig = require('electron-twig')
 const path = require('node:path')
 const {
