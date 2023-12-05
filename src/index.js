@@ -240,7 +240,7 @@ function createWindow () {
   //   console.log(payload);
   // });
 
-  states.win.openDevTools();
+  // states.win.openDevTools();
   states.win.setMenu(null);
   states.win.maximize();
   states.win.loadFile('views/home.html.twig');
