@@ -9,7 +9,23 @@
                 <div class="card-body">
                   
                   <button type="button" class="btn btn-primary" id="databases_start_profiling_btn">Start profiling...</button>
+                  <button type="button" class="btn btn-warning" id="databases_stop_profiling_btn" style="display:none;">Stop profiling...</button>
+                  
+                  <button type="button" class="btn btn-info" id="databases_clear_profiling_btn">Clear table...</button>
 
+                  <br/>
+
+                  <table id="datatable" class="table table-striped">
+                    <thead>
+                      <th>start_time</th>
+                      <th>user_host</th>
+                      <th>db</th>
+                      <th>query_time</th>
+                      <th>sql_text</th>
+                    </thead>
+                    <tbody id="database_profiling_tbody">
+                    </tbody>
+                  </table>
                 </div>
             </div>
           </div>

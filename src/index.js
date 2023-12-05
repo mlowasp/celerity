@@ -12,6 +12,8 @@ var states = {
   'database_connected': false,
   'database_connection': false,
   'database_profiling': false,
+  'win': false,
+  'last_start_time': false,
 };
 
 const store = new Store();
@@ -60,35 +62,82 @@ var getFirstRow = function(results) {
 var handleMainLoop = async function() {
   if (states.database_connected) {
     if (states.database_profiling) {
-      var sql = "show variables where Variable_name = 'log_output'"; // save this and put it back 
+      // var sql = "show variables where Variable_name = 'log_output'"; // save this and put it back 
       //https://mariadb.com/kb/en/mysqlslow_log-table/
+      // var results = await dbQuery(states.database_connection, sql);
+      
+      // console.log(getFirstRow(results));
+
+      var sql = "SELECT * FROM mysql.slow_log";
+      if (states.last_start_time) {
+        sql += " WHERE start_time > '"+states.last_start_time.toString()+"'";
+      }
       var results = await dbQuery(states.database_connection, sql);
       
-      console.log(getFirstRow(results));
+      var payload = [];
+      for ( var index in results ) {
+        if (
+          results[index].sql_text.startsWith("SELECT * FROM mysql.slow_log")          
+          ||  
+          results[index].sql_text.startsWith("TRUNCATE mysql.slow_log")
+          ||
+          results[index].sql_text.startsWith("SET GLOBAL")
+          ||
+          results[index].sql_text.startsWith("SET SQL_MODE")
+          ||
+          results[index].sql_text.startsWith("SELECT GET_LOCK")
+        ) {
+          continue;
+        }
+        payload.push(results[index]);
+        states.last_start_time = results[index].start_time;
+      }
 
-      var sql = "SET GLOBAL log_output = 'FILE,TABLE';";
-      var sql = "set global slow_query_log = 'ON'";
-      var sql = "set global log_queries_not_using_indexes = 'ON'";
-      var sql = "set global long_query_time = 0";
-      var sql = "select * FROM mysql.slow_log";
-  
-      var sql = "SET GLOBAL log_output = 'FILE';";
-      var sql = "set global slow_query_log = 'OFF'";
+      var returnData = {
+        'status':'ok',
+        'payload':payload,
+        'action': 'update_profiling_tbody',
+      };
+
+      states.win.webContents.send('rx', returnData);
     }
   }
 }
 
-var handleRx = function(event, data) {
+var handleTx = async function(event, data) {
+  
   const webContents = event.sender;
   const win = BrowserWindow.fromWebContents(webContents);
-  var returnData = {'status':'ok','payload':{}};
+  var returnData = {
+    'status':'ok',
+    'payload':{},
+    'action': data.action,
+  };
   
   if (data.action == 'get_databases') {
-    returnData.payload = config['databases'];
+    returnData.payload = config['databases'];    
+  }
+
+  if (data.action == 'stop_profiling') {
+    states.database_profiling = false;
+    var sql = "SET GLOBAL log_output = 'FILE';";
+    var results = await dbQuery(states.database_connection, sql);
+    var sql = "SET GLOBAL slow_query_log = 'OFF'";
+    var results = await dbQuery(states.database_connection, sql);
   }
 
   if (data.action == 'start_profiling') {
-    states.database_profiling = true;
+    var sql = "TRUNCATE mysql.slow_log;";
+    var results = await dbQuery(states.database_connection, sql);
+    var sql = "SET GLOBAL log_output = 'FILE,TABLE';";
+    var results = await dbQuery(states.database_connection, sql);
+    var sql = "SET GLOBAL slow_query_log = 'ON'";
+    var results = await dbQuery(states.database_connection, sql);
+    var sql = "SET GLOBAL log_queries_not_using_indexes = 'ON'";
+    var results = await dbQuery(states.database_connection, sql);
+    var sql = "SET GLOBAL long_query_time = 0";
+    var results = await dbQuery(states.database_connection, sql);
+    states.database_profiling = true;    
   }
 
   if (data.action == 'connect_database') {
@@ -109,7 +158,8 @@ var handleRx = function(event, data) {
         port     : databaseInfo.port,
         user     : databaseInfo.username,
         password : databaseInfo.password,
-        database : databaseInfo.database
+        database : databaseInfo.database,
+        "dateStrings": true
       });
 
       connection.connect(async function(err) {
@@ -162,11 +212,11 @@ var handleRx = function(event, data) {
     }
   }
 
-  return returnData;
+  return win.webContents.send('rx', returnData);
 }
 
 function createWindow () {
-  const win = new BrowserWindow({
+  states.win = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -174,16 +224,16 @@ function createWindow () {
     }
   });
 
-  ipcMain.on('tx', (event, payload) => {
-    const webContents = event.sender;
-    const win = BrowserWindow.fromWebContents(webContents);
-    console.log(payload);
-  });
+  // ipcMain.on('tx', (event, payload) => {
+  //   const webContents = event.sender;
+  //   const win = BrowserWindow.fromWebContents(webContents);
+  //   console.log(payload);
+  // });
 
-  win.openDevTools();
-  win.setMenu(null);
-  win.maximize();
-  win.loadFile('views/home.html.twig');
+  states.win.openDevTools();
+  states.win.setMenu(null);
+  states.win.maximize();
+  states.win.loadFile('views/home.html.twig');
 }
 
 app.whenReady().then(() => {
@@ -192,7 +242,7 @@ app.whenReady().then(() => {
   console.log(safeStorage.isEncryptionAvailable());
   console.log(safeStorage.encryptString("hello"));
 
-  ipcMain.handle('rx', handleRx);
+  ipcMain.on('tx', handleTx);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
