@@ -15,7 +15,7 @@ Celerity does not act as a proxy between your application and your database serv
 
 ## Releases
 
-
+No release yet. Working on it.
 
 ## Preview
 
