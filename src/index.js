@@ -115,9 +115,11 @@ var handleMainLoop = async function() {
 
 var handleTx = async function(event, data) {
   
-  const webContents = event.sender;
-  const win = BrowserWindow.fromWebContents(webContents);
+  var webContents = event.sender;
+  var win = BrowserWindow.fromWebContents(webContents);
+
   var returnData = {
+    'uid': uuidv4(),
     'status':'ok',
     'payload':{},
     'action': data.action,
@@ -189,13 +191,15 @@ var handleTx = async function(event, data) {
     };
 
     states.database_connected = false;
+    states.database_connection = false;
 
     var data_id = data.id;
     var index = getDatabaseIndex(data_id);
-    if (index) {
+    
+    if (index !== false) {
       var databaseInfo = config['databases'][index];
 
-      connection = mysql.createConnection({
+      states.database_connection = mysql.createConnection({
         host     : databaseInfo.hostname,
         port     : databaseInfo.port,
         user     : databaseInfo.username,
@@ -203,22 +207,44 @@ var handleTx = async function(event, data) {
         database : databaseInfo.database,
         "dateStrings": true
       });
-
-      connection.connect(async function(err) {
-        if (err) {
-          console.error('error connecting: ' + err.stack);
-          states.database_connected = false;
-          return;
+    
+      states.database_connection.connect(function(connect_error) {        
+        if (connect_error) {          
+          states.database_connected = false;      
+        } else {
+          states.database_connected = true;   
         }
-       
-        console.log('connected as id ' + connection.threadId);
-        states.database_connected = true;
-        states.database_connection = connection;
         
-        win.loadFile('views/databases_connected.html.twig');
+        states.database_connection.query('SELECT 1 + 1 AS solution', function(query_error, rows, fields) {
+          if (query_error) {          
+            states.database_connected = false;      
+          } else {
+            states.database_connected = true;   
+          }
+          
+          if (states.database_connected) {           
+            win.loadFile('views/databases_connected.html.twig');
+          } else {                  
+            win.loadFile('views/databases_manage.html.twig');
+          }
+          
+          states.database_connection.on('error', function onError(err) {
+            states.database_connected = false;  
+            win.loadFile('views/databases_manage.html.twig');
+            returnData.payload = {'database_connected': states.database_connected};      
+            win.once('ready-to-show', () => {
+              win.webContents.send('rx', returnData);
+              win.show();
+            });
+          });
 
+          returnData.payload = {'database_connected': states.database_connected};      
+          win.once('ready-to-show', () => {
+            win.webContents.send('rx', returnData);
+            win.show();
+          });
+        });   
       });
-
     }
   }
 
@@ -247,6 +273,7 @@ var handleTx = async function(event, data) {
 
   if (data.action == 'navigate') {
     if (data.page == 'menu_databases_manage') {
+      states.database_connected = false;
       win.loadFile('views/databases_manage.html.twig');
     }
     if (data.page == 'menu_databases_add') {
@@ -254,7 +281,10 @@ var handleTx = async function(event, data) {
     }
   }
 
-  return win.webContents.send('rx', returnData);
+  if (data.action != 'connect_database') {
+    return win.webContents.send('rx', returnData);
+  }
+  
 }
 
 function createWindow () {
@@ -267,13 +297,8 @@ function createWindow () {
     icon: __dirname + '/assets/images/celerity.png',
   });
 
-  // ipcMain.on('tx', (event, payload) => {
-  //   const webContents = event.sender;
-  //   const win = BrowserWindow.fromWebContents(webContents);
-  //   console.log(payload);
-  // });
+  states.win.openDevTools();
 
-  // states.win.openDevTools();
   states.win.setMenu(null);
   states.win.maximize();
   states.win.loadFile('views/home.html.twig');

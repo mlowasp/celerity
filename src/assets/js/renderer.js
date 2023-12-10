@@ -127,6 +127,12 @@ window.electronAPI.handleRx((event, data) => {
         }        
     }
 
+    if (data.action == "connect_database") {
+        if (!data.payload.database_connected) {
+            alert('Unable to connect to database server.');
+        }
+    }
+
     if (data.action == "get_databases") {
         var databases = data.payload;
         var HTML='';
