@@ -17,6 +17,7 @@ var states = {
   'database_connected': false,
   'database_connection': false,
   'database_profiling': false,
+  'missing_index_scanner': false,
   'win': false,
   'last_start_time': false,
 };
@@ -184,6 +185,62 @@ var handleTx = async function(event, data) {
     states.database_profiling = true;    
   }
 
+  if (data.action == 'missing_index_scanner') {
+    states.missing_index_scanner = true;
+    win.loadFile('views/loading.html.twig');
+    twig.view = {
+      loading_msg: 'Scanning for missing indexes...'
+    };
+
+    win.once('ready-to-show', async () => {
+      win.webContents.send('rx', returnData);
+      win.show();
+
+      var sql = "SELECT * FROM mysql.slow_log";
+      var results = await dbQuery(states.database_connection, sql);
+      
+      var payload = [];
+      for ( var index in results ) {
+        if (
+          results[index].db != states.database_connection.config.database
+          ||
+          results[index].sql_text.startsWith("SET GLOBAL")
+          ||
+          results[index].sql_text.startsWith("SET SQL_MODE")
+          ||
+          results[index].sql_text.startsWith("SELECT GET_LOCK")
+        ) {
+          continue;
+        }
+        payload.push(results[index]);
+      }
+
+      for ( var index in payload ) {
+        var sql = payload[index].sql_text;
+        var explainSql = "EXPLAIN " + sql;
+        var results = await dbQuery(states.database_connection, sql);
+        for ( var indexResults in results ) {
+          var type = results[indexResults].type;
+          var table = results[indexResults].table;
+          var tableAS = sql.split(" ");
+          if ( tableAS.length > 1 ) {
+            console.log(tableAS);
+          }
+          
+          for ( var indexTAS in tableAS ) {
+
+          }
+          var rows = results[indexResults].rows;
+          if (type == 'ref') {
+
+          }
+          // add index, run explain, check if rows is lower than without index
+        }
+      }
+
+    });
+  }
+
   if (data.action == 'connect_database') {
     win.loadFile('views/loading.html.twig');
     twig.view = {
@@ -281,7 +338,10 @@ var handleTx = async function(event, data) {
     }
   }
 
-  if (data.action != 'connect_database') {
+  if (
+    data.action != 'connect_database'
+    && data.action != 'missing_index_scanner'
+  ) {
     return win.webContents.send('rx', returnData);
   }
   

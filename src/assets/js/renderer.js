@@ -251,6 +251,15 @@ if (databases_manage_tbody) {
     });   
 }
 
+const missing_index_scanner_btn = document.getElementById('missing_index_scanner_btn');
+if (missing_index_scanner_btn) {
+    missing_index_scanner_btn.addEventListener('click', () => {
+        tx({
+            'action': 'missing_index_scanner',
+        });  
+    });
+}
+
 const databases_innodb_buffer_pool_size_optimize_btn = document.getElementById('databases_innodb_buffer_pool_size_optimize_btn');
 if (databases_innodb_buffer_pool_size_optimize_btn) {
     databases_innodb_buffer_pool_size_optimize_btn.addEventListener('click', () => {
