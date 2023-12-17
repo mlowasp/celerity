@@ -89,7 +89,7 @@ window.electronAPI.handleRx((event, data) => {
                 <td>`+data.payload[index].sql_text.slice(0, 50) + "[...]"+`</td>
                 <td>
                 `;
-                if (data.payload[index].sql_text.startsWith("SELECT ")) {
+                if (data.payload[index].sql_text.toLowerCase().startsWith("select ")) {
                     HTML += `<button type="button" id="explainModal_btn" class="btn btn-sm btn-secondary" data-sql="`+btoa(data.payload[index].sql_text)+`">Explain</button>`;
                 }
                 HTML += `</td>
@@ -105,15 +105,19 @@ window.electronAPI.handleRx((event, data) => {
             .draw();
     }
 
-    if (data.action == "start_profiling") {        
-        var databases_start_profiling_btn = document.getElementById('databases_start_profiling_btn');
-        if (databases_start_profiling_btn) {
-            databases_start_profiling_btn.style.display = 'none';
-        }        
-        var databases_stop_profiling_btn = document.getElementById('databases_stop_profiling_btn');
-        if (databases_stop_profiling_btn) {
-            databases_stop_profiling_btn.style.display = 'inline';
-        }        
+    if (data.action == "start_profiling") {    
+        if (data.payload.error) {
+            alert(data.payload.error);
+        } else {
+            var databases_start_profiling_btn = document.getElementById('databases_start_profiling_btn');
+            if (databases_start_profiling_btn) {
+                databases_start_profiling_btn.style.display = 'none';
+            }        
+            var databases_stop_profiling_btn = document.getElementById('databases_stop_profiling_btn');
+            if (databases_stop_profiling_btn) {
+                databases_stop_profiling_btn.style.display = 'inline';
+            }     
+        }   
     }
 
     if (data.action == "stop_profiling") {        

@@ -50,12 +50,12 @@ var getDatabaseIndex = function(data_id) {
 var dbQuery = (connection, query) => {
   return new Promise((resolve, reject)=>{
       connection.query(query,  (error, results)=>{
-          if(error){
-              return reject(error);
+          if(error) {            
+            return resolve(error.code);
           }
           return resolve(results);
       });
-  });
+  }).catch(() => { /* do whatever you want here */ });
 };
 
 var getFirstRow = function(results) {
@@ -172,17 +172,53 @@ var handleTx = async function(event, data) {
   }
 
   if (data.action == 'start_profiling') {
+    var error = false;
+
     var sql = "TRUNCATE mysql.slow_log;";
     var results = await dbQuery(states.database_connection, sql);
+    if (
+      results == 'ER_TABLEACCESS_DENIED_ERROR'
+      ||
+      results == 'ER_SPECIFIC_ACCESS_DENIED_ERROR'
+    ) { error = results; }
+
     var sql = "SET GLOBAL log_output = 'FILE,TABLE';";
     var results = await dbQuery(states.database_connection, sql);
+    if (
+      results == 'ER_TABLEACCESS_DENIED_ERROR'
+      ||
+      results == 'ER_SPECIFIC_ACCESS_DENIED_ERROR'
+    ) { error = results; }
+
     var sql = "SET GLOBAL slow_query_log = 'ON'";
     var results = await dbQuery(states.database_connection, sql);
+    if (
+      results == 'ER_TABLEACCESS_DENIED_ERROR'
+      ||
+      results == 'ER_SPECIFIC_ACCESS_DENIED_ERROR'
+    ) { error = results; }
+
     var sql = "SET GLOBAL log_queries_not_using_indexes = 'ON'";
     var results = await dbQuery(states.database_connection, sql);
+    if (
+      results == 'ER_TABLEACCESS_DENIED_ERROR'
+      ||
+      results == 'ER_SPECIFIC_ACCESS_DENIED_ERROR'
+    ) { error = results; }
+
     var sql = "SET GLOBAL long_query_time = 0";
     var results = await dbQuery(states.database_connection, sql);
-    states.database_profiling = true;    
+    if (
+      results == 'ER_TABLEACCESS_DENIED_ERROR'
+      ||
+      results == 'ER_SPECIFIC_ACCESS_DENIED_ERROR'
+    ) { error = results; }
+
+    if (!error) {
+      states.database_profiling = true;    
+    } else {
+      returnData.payload = {'error': error};
+    }
   }
 
   if (data.action == 'missing_index_scanner') {
